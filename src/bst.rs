@@ -50,7 +50,7 @@ impl<T: PartialEq + PartialOrd + Debug> BinarySearchTree<T> {
 
     pub fn insert(&mut self, value: T) -> bool {
         if let Some(root) = &self.root {
-            self.insert_impl(root, value)
+            Self::insert_impl(root, value)
         } else {
             let new_node = Rc::new(RefCell::new(Node::new(value)));
             self.root = Some(new_node);
@@ -58,14 +58,14 @@ impl<T: PartialEq + PartialOrd + Debug> BinarySearchTree<T> {
         }
     }
 
-    fn insert_impl(&self, current_node: &NodeLink<T>, data: T) -> bool {
+    fn insert_impl(current_node: &NodeLink<T>, data: T) -> bool {
         let mut node = current_node.borrow_mut();
         if node.data == data {
-            return false;
+            false
         } else if data < node.data {
             match &node.left {
                 Some(lnode) => {
-                    return self.insert_impl(lnode, data);
+                    return Self::insert_impl(lnode, data);
                 }
                 None => {
                     let new_node = Node::new_with_parent(data, current_node);
@@ -77,7 +77,7 @@ impl<T: PartialEq + PartialOrd + Debug> BinarySearchTree<T> {
         } else {
             match &node.right {
                 Some(rnode) => {
-                    return self.insert_impl(rnode, data);
+                    return Self::insert_impl(rnode, data);
                 }
                 None => {
                     let new_node = Node::new_with_parent(data, current_node);
@@ -98,7 +98,7 @@ impl<T: PartialEq + PartialOrd + Debug> BinarySearchTree<T> {
     fn find_node(start_node: &NodeLink<T>, data: T) -> Option<NodeLink<T>> {
         let current_node = &start_node.borrow();
         if current_node.data == data {
-            return Some(start_node.clone());
+            Some(start_node.clone())
         } else if data < current_node.data {
             return current_node
                 .left
@@ -110,6 +110,12 @@ impl<T: PartialEq + PartialOrd + Debug> BinarySearchTree<T> {
                 .as_ref()
                 .and_then(|rnode| Self::find_node(rnode, data));
         }
+    }
+}
+
+impl<T: PartialEq + PartialOrd + Debug> Default for BinarySearchTree<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
