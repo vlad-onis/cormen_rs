@@ -12,6 +12,8 @@ pub enum Error {
 
     #[error("Element has no right")]
     NoRight,
+    #[error("The heap is empty")]
+    Empty,
 }
 
 #[derive(Debug)]
@@ -121,6 +123,36 @@ where
 
         Ok(right_element_index)
     }
+
+    pub fn minimum(&self) -> Option<&T> {
+        if self.heap.is_empty() {
+            None
+        } else {
+            Some(&self.heap[0])
+        }
+    }
+
+    pub fn extract_min(&mut self) -> Option<T> {
+        if self.heap.len() == 1 {
+            let minimum = self.heap[0].clone();
+            self.heap.remove(0);
+            return Some(minimum);
+        }
+
+        match self.minimum().cloned() {
+            None => None,
+            Some(minimum) => {
+                let last_index = self.heap.len() - 1;
+                self.heap[0] = self.heap[last_index].clone();
+                self.heap.remove(last_index);
+
+                let res = self.min_heapify(0);
+                println!("Min heapify after extraction finished with: {res:?}");
+
+                Some(minimum)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -191,16 +223,77 @@ pub mod tests {
     pub fn build_min_heap() {
         let arr = vec![7, 6, 5, 4, 3, 2, 1];
         let mut bin_heap = BinaryHeap::new(HeapType::MinHeap, arr);
-
         bin_heap.build_heap();
-
         assert_eq!(bin_heap.heap, vec![1, 3, 2, 4, 6, 7, 5]);
 
         let arr = vec![8, 7, 6, 5, 4, 3, 2, 1];
         let mut bin_heap = BinaryHeap::new(HeapType::MinHeap, arr);
+        bin_heap.build_heap();
+        assert_eq!(bin_heap.heap, vec![1, 4, 2, 5, 8, 3, 6, 7]);
 
+        let arr = vec![2, 1];
+        let mut bin_heap = BinaryHeap::new(HeapType::MinHeap, arr);
+        bin_heap.build_heap();
+        assert_eq!(bin_heap.heap, vec![1, 2]);
+    }
+
+    #[test]
+    pub fn minimum_element() {
+        let arr = vec![1, 12, 14, 6, 18, 112, 44, 32];
+        let mut bin_heap = BinaryHeap::new(HeapType::MinHeap, arr);
         bin_heap.build_heap();
 
-        assert_eq!(bin_heap.heap, vec![1, 4, 2, 5, 8, 3, 6, 7]);
+        assert_eq!(bin_heap.minimum().cloned().unwrap(), 1);
+    }
+
+    #[test]
+    pub fn extract_minimum_one_element() {
+        let arr = vec![1];
+        let mut bin_heap = BinaryHeap::new(HeapType::MinHeap, arr);
+        bin_heap.build_heap();
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 1);
+    }
+
+    #[test]
+    pub fn extract_minimum_no_elements() {
+        let arr: Vec<u32> = vec![];
+        let mut bin_heap = BinaryHeap::new(HeapType::MinHeap, arr);
+        bin_heap.build_heap();
+
+        assert!(bin_heap.extract_min().is_none());
+    }
+
+    #[test]
+    pub fn extract_minimum() {
+        let arr = vec![1, 12, 14, 6, 18, 112, 44, 32];
+        let mut bin_heap = BinaryHeap::new(HeapType::MinHeap, arr);
+        bin_heap.build_heap();
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 1);
+        assert_eq!(bin_heap.heap, vec![6, 12, 14, 32, 18, 112, 44]);
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 6);
+        assert_eq!(bin_heap.heap, vec![12, 18, 14, 32, 44, 112]);
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 12);
+        assert_eq!(bin_heap.heap, vec![14, 18, 112, 32, 44]);
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 14);
+        assert_eq!(bin_heap.heap, vec![18, 32, 112, 44]);
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 18);
+        assert_eq!(bin_heap.heap, vec![32, 44, 112]);
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 32);
+        assert_eq!(bin_heap.heap, vec![44, 112]);
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 44);
+        assert_eq!(bin_heap.heap, vec![112]);
+
+        assert_eq!(bin_heap.extract_min().unwrap(), 112);
+        assert_eq!(bin_heap.heap, vec![]);
+
+        assert!(bin_heap.extract_min().is_none());
     }
 }
